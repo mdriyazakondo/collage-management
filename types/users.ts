@@ -55,3 +55,21 @@ export type TCreateUserPayload = {
   academicYear?: TUser["academicYear"];
   images: string;
 };
+
+export type TUserListResponse = {
+  success: boolean;
+  message: string;
+  data: TUser[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPage: number;
+  };
+};
+export type TGetUsersQuery = {
+  search?: string;
+  role?: string;
+  page?: number;
+  limit?: number;
+};

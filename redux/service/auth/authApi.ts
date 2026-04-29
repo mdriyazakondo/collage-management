@@ -17,14 +17,13 @@ export const userApi = createApi({
   reducerPath: "userApi",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:8080/api/v1/user/",
-    credentials: "include", // যদি cookie / session ব্যবহার করো
+    credentials: "include",
   }),
   tagTypes: ["users"],
   endpoints: (builder) => ({
-    // ✅ Get all users
-    getAllUsers: builder.query<TApiResponse<TUser[]>, void>({
-      query: () => ({
-        url: "all_user",
+    getAllUsers: builder.query<TApiResponse<TUser[]>, string>({
+      query: (pathName) => ({
+        url: `all_user${pathName}`,
         method: "GET",
       }),
       providesTags: ["users"],
@@ -36,7 +35,7 @@ export const userApi = createApi({
       }),
       providesTags: ["users"],
     }),
-    // ✅ Get role by email (FIXED)
+
     getRoleByUser: builder.query<
       TApiResponse<{ role: TUser["role"] }>,
       { email: string }
@@ -48,7 +47,6 @@ export const userApi = createApi({
       providesTags: ["users"],
     }),
 
-    // ✅ Create user
     createUser: builder.mutation<TApiResponse<TUser>, TCreateUserPayload>({
       query: (data) => ({
         url: "sign_up",
@@ -58,7 +56,6 @@ export const userApi = createApi({
       invalidatesTags: ["users"],
     }),
 
-    // ✅ Login
     loginUser: builder.mutation<
       TApiResponse<{ token: string; user: TUser }>,
       TLoginPayload
@@ -71,7 +68,6 @@ export const userApi = createApi({
       invalidatesTags: ["users"],
     }),
 
-    // ✅ Update user
     updateUser: builder.mutation<TApiResponse<TUser>, TUpdateUserPayload>({
       query: (data) => ({
         url: "auth/update",
@@ -81,7 +77,6 @@ export const userApi = createApi({
       invalidatesTags: ["users"],
     }),
 
-    // ✅ Logout
     logoutUser: builder.mutation<TApiResponse<null>, void>({
       query: () => ({
         url: "logout",
@@ -90,7 +85,6 @@ export const userApi = createApi({
       invalidatesTags: ["users"],
     }),
 
-    // ✅ Update role
     updateUserRole: builder.mutation<
       TApiResponse<TUser>,
       TUpdateUserRolePayload
@@ -103,7 +97,6 @@ export const userApi = createApi({
       invalidatesTags: ["users"],
     }),
 
-    // ✅ Delete user
     deleteUser: builder.mutation<TApiResponse<null>, string>({
       query: (id: string) => ({
         url: `auth/delete-user/${id}`,

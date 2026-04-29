@@ -77,7 +77,8 @@ const TeacherLightBox: React.FC<TeacherLightBoxProps> = ({
             <Image
               src={selectedTeacher.image || "/default.png"}
               alt={selectedTeacher.name}
-              fill
+              width={400}
+              height={400}
               className="object-cover"
             />
           </motion.div>
