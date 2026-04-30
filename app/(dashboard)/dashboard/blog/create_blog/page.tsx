@@ -16,34 +16,35 @@ import {
   X,
   FileIcon,
 } from "lucide-react";
+import Swal from "sweetalert2";
+
+import { useCreateBlogMutation } from "@/redux/service/blog/blogApi";
+import { uploadToCloudinary } from "@/utils/upload";
 
 export interface TBlog {
   author: string;
   title: string;
   description: string;
   blog_type: string;
-  image?: string[];
 }
 
 const BlogForm = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [createBlog] = useCreateBlogMutation();
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-  } = useForm<TBlog>({
-    defaultValues: {
-      blog_type: "",
-    },
-  });
+  } = useForm<TBlog>();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
-      setSelectedFiles((prev) => [...prev, ...filesArray]);
+      setSelectedFiles(filesArray);
     }
   };
 
@@ -56,12 +57,45 @@ const BlogForm = () => {
   };
 
   const onSubmit: SubmitHandler<TBlog> = async (data) => {
-    console.log("Submitting Data:", data);
-    console.log("Files to upload:", selectedFiles);
+    try {
+      let uploadedImages: string[] = [];
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    reset();
-    setSelectedFiles([]);
+      if (selectedFiles.length > 0) {
+        uploadedImages = await Promise.all(
+          selectedFiles.map(async (file) => {
+            const res = await uploadToCloudinary(file);
+            return res || "";
+          }),
+        );
+      }
+
+      const finalData = {
+        ...data,
+        image: uploadedImages,
+      };
+      console.log(finalData);
+      const blogData = await createBlog(finalData).unwrap();
+      console.log(blogData);
+
+      Swal.fire({
+        icon: "success",
+        title: "Blog Created Successfully 🎉",
+        text: "Your content has been published!",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      reset();
+      setSelectedFiles([]);
+    } catch (err: any) {
+      console.error(err);
+
+      Swal.fire({
+        icon: "error",
+        title: "Submission Failed",
+        text: err?.data?.message || "Something went wrong!",
+      });
+    }
   };
 
   return (
@@ -71,7 +105,7 @@ const BlogForm = () => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-4xl bg-[#1E293B] rounded-xl shadow-2xl border border-slate-700 overflow-hidden"
       >
-        {/* Top Professional Header */}
+        {/* Header */}
         <div className="bg-[#020617] px-8 py-6 text-white flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg">
@@ -81,11 +115,12 @@ const BlogForm = () => {
               <h2 className="text-xl font-bold tracking-tight">
                 College Content Management
               </h2>
-              <p className="text-blue-400 text-xs mt-0.5 font-medium italic">
+              <p className="text-blue-400 text-xs italic">
                 Publish academic notices, articles, and campus updates
               </p>
             </div>
           </div>
+
           <div className="hidden md:flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-widest">
             <Calendar size={14} />
             <span>
@@ -99,176 +134,141 @@ const BlogForm = () => {
 
         <div className="p-8 md:p-12">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            {/* Primary Details Row */}
+            {/* Author + Category */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Author Field */}
-              <div className="space-y-2">
-                <label className="text-[13px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                  <User size={16} className="text-blue-500" />
-                  Administrator / Faculty Name
+              <div>
+                <label className="text-sm text-slate-300 flex items-center gap-2 mb-2">
+                  <User size={16} />
+                  Author
                 </label>
                 <input
-                  {...register("author", {
-                    required: "Author name is required",
-                  })}
-                  className={`w-full px-4 py-3 rounded-lg bg-[#0F172A] border border-slate-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none text-slate-100 placeholder:text-slate-600
-                  ${errors.author ? "border-red-500 ring-red-500/10" : ""}`}
+                  {...register("author", { required: "Author is required" })}
+                  className="w-full px-4 py-3 rounded-lg bg-[#0F172A] border border-slate-700 text-white"
                   placeholder="Enter full name"
                 />
+                <p className="text-red-400 text-xs mt-1">
+                  {errors.author?.message}
+                </p>
               </div>
 
-              {/* Category Dropdown */}
-              <div className="space-y-2">
-                <label className="text-[13px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                  <Tags size={16} className="text-blue-500" />
-                  Publication Category
+              <div>
+                <label className="text-sm text-slate-300 flex items-center gap-2 mb-2">
+                  <Tags size={16} />
+                  Blog Type
                 </label>
                 <select
-                  {...register("blog_type", { required: "Select a category" })}
-                  className="w-full px-4 py-3 rounded-lg bg-[#0F172A] border border-slate-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none text-slate-100 cursor-pointer appearance-none"
+                  {...register("blog_type", {
+                    required: "Category required",
+                  })}
+                  className="w-full px-4 py-3 rounded-lg bg-[#0F172A] border border-slate-700 text-white"
                 >
-                  <option value="" className="bg-[#1E293B]">
-                    Choose category
-                  </option>
-                  <option value="notice" className="bg-[#1E293B]">
-                    Academic Notice
-                  </option>
-                  <option value="event" className="bg-[#1E293B]">
-                    Campus Event
-                  </option>
-                  <option value="research" className="bg-[#1E293B]">
-                    Research Paper
-                  </option>
-                  <option value="newsletter" className="bg-[#1E293B]">
-                    College Newsletter
-                  </option>
+                  <option value="">Choose category</option>
+                  <option value="notice">Notice</option>
+                  <option value="event">Event</option>
+                  <option value="research">Research</option>
+                  <option value="newsletter">Newsletter</option>
                 </select>
               </div>
             </div>
 
-            {/* Title Field */}
-            <div className="space-y-2">
-              <label className="text-[13px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                <FileText size={16} className="text-blue-500" />
-                Headline / Title
+            {/* Title */}
+            <div>
+              <label className="text-sm text-slate-300 flex items-center gap-2 mb-2">
+                <FileText size={16} />
+                Title
               </label>
               <input
-                {...register("title", { required: "Title is required" })}
-                className="w-full px-4 py-3 rounded-lg bg-[#0F172A] border border-slate-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none text-slate-100 text-lg font-semibold placeholder:text-slate-600"
-                placeholder="Ex: Annual Science Fair 2024 Schedule"
+                {...register("title", { required: "Title required" })}
+                className="w-full px-4 py-3 rounded-lg bg-[#0F172A] border border-slate-700 text-white"
+                placeholder="Blog title"
               />
             </div>
 
-            {/* Content Field */}
-            <div className="space-y-2">
-              <label className="text-[13px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                <AlignLeft size={16} className="text-blue-500" />
-                Detailed Content
+            {/* Description */}
+            <div>
+              <label className="text-sm text-slate-300 flex items-center gap-2 mb-2">
+                <AlignLeft size={16} />
+                Description
               </label>
               <textarea
-                {...register("description", {
-                  required: "Description is required",
-                })}
                 rows={6}
-                className="w-full px-4 py-4 rounded-lg bg-[#0F172A] border border-slate-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none text-slate-200 resize-none leading-relaxed placeholder:text-slate-600"
-                placeholder="Write the full details here..."
+                {...register("description", {
+                  required: "Description required",
+                })}
+                className="w-full px-4 py-3 rounded-lg bg-[#0F172A] border border-slate-700 text-white"
+                placeholder="Write content..."
               />
             </div>
 
-            {/* Media Upload Box */}
-            <div className="space-y-4">
-              <label className="text-[13px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                <UploadCloud size={16} className="text-blue-500" />
+            {/* Upload */}
+            <div>
+              <label className="text-sm text-slate-300 flex items-center gap-2 mb-2">
+                <UploadCloud size={16} />
                 Attachments
               </label>
 
               <input
+                ref={fileInputRef}
                 type="file"
                 multiple
                 className="hidden"
-                ref={fileInputRef}
+                accept=".png,.jpg,.jpeg,.pdf"
                 onChange={handleFileChange}
-                accept=".pdf,.png,.jpg,.jpeg"
               />
 
               <div
                 onClick={triggerUpload}
-                className="border-2 border-dashed border-slate-700 rounded-xl p-8 hover:bg-[#0F172A] hover:border-blue-500/50 transition-all cursor-pointer group"
+                className="border-2 border-dashed border-slate-700 rounded-xl p-8 cursor-pointer text-center hover:border-blue-500"
               >
-                <div className="flex flex-col items-center justify-center gap-3">
-                  <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
-                    <UploadCloud size={24} />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-bold text-slate-300">
-                      Click to upload documents
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Select official documents or cover photos (PDF, PNG, JPG)
-                    </p>
-                  </div>
-                </div>
+                <UploadCloud className="mx-auto text-blue-500 mb-3" size={28} />
+                <p className="text-slate-300 font-semibold">
+                  Click to upload files
+                </p>
               </div>
 
-              {/* File Preview List */}
               <AnimatePresence>
                 {selectedFiles.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="grid grid-cols-1 sm:grid-cols-2 gap-3"
-                  >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                     {selectedFiles.map((file, index) => (
                       <motion.div
-                        key={`${file.name}-${index}`}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center justify-between p-3 bg-[#0F172A] border border-slate-700 rounded-lg"
+                        key={index}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex items-center justify-between p-3 bg-[#0F172A] rounded-lg border border-slate-700"
                       >
-                        <div className="flex items-center gap-3 overflow-hidden">
-                          <FileIcon
-                            size={18}
-                            className="text-blue-500 flex-shrink-0"
-                          />
-                          <span className="text-xs font-medium text-slate-400 truncate">
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <FileIcon size={16} className="text-blue-500" />
+                          <span className="text-xs text-slate-300 truncate">
                             {file.name}
                           </span>
                         </div>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeFile(index);
-                          }}
-                          className="p-1 hover:bg-slate-800 rounded-full text-slate-500 transition-colors"
-                        >
-                          <X size={14} />
+
+                        <button type="button" onClick={() => removeFile(index)}>
+                          <X size={14} className="text-red-400" />
                         </button>
                       </motion.div>
                     ))}
-                  </motion.div>
+                  </div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-4 pt-6 border-t border-slate-700/50">
+            {/* Buttons */}
+            <div className="flex justify-end gap-4 pt-6 border-t border-slate-700">
               <button
                 type="button"
                 onClick={() => {
                   reset();
                   setSelectedFiles([]);
                 }}
-                className="px-6 py-3 rounded-lg text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+                className="px-6 py-3 text-slate-400 hover:text-white"
               >
-                Clear Draft
+                Clear
               </button>
-              <motion.button
+
+              <button
                 disabled={isSubmitting}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="px-10 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-sm shadow-xl shadow-blue-900/20 transition-all flex items-center gap-2 disabled:bg-slate-700 disabled:text-slate-500 disabled:shadow-none"
+                className="px-8 py-3 bg-blue-600 rounded-lg text-white flex items-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -281,16 +281,9 @@ const BlogForm = () => {
                     Submit Post
                   </>
                 )}
-              </motion.button>
+              </button>
             </div>
           </form>
-        </div>
-
-        {/* Footer info */}
-        <div className="px-8 py-4 bg-[#020617] border-t border-slate-800 text-center">
-          <p className="text-[10px] text-slate-500 font-black uppercase tracking-[3px]">
-            College Management System — Content Portal v2.0
-          </p>
         </div>
       </motion.div>
     </div>

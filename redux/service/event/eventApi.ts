@@ -1,6 +1,5 @@
 import { TEvents } from "@/types/event";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { create } from "domain";
 
 type TApiResponse<T> = {
   success: boolean;

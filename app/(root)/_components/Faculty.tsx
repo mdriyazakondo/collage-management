@@ -12,24 +12,19 @@ import "swiper/css/pagination";
 import "swiper/css/navigation";
 
 import TeacherLightBox from "./TeacherLightBox";
-import {
-  useGetAllUsersQuery,
-  useGetTeacherRoleQuery,
-} from "@/redux/service/auth/authApi";
+import { useGetTeacherRoleQuery } from "@/redux/service/auth/authApi";
 import { TUser } from "@/types/users";
 
 const Faculty: React.FC = () => {
-  // ✅ FIXED: RTK Query proper destructure
   const role = "teacher";
   const { data, isLoading, error } = useGetTeacherRoleQuery(role);
 
-  // API safe fallback
   const teachers: TUser[] = data?.data || [];
 
   const [selectedTeacher, setSelectedTeacher] = useState<TUser | null>(null);
 
   return (
-    <section className="py-24 px-4 bg-gray-50 overflow-hidden faculty-slider">
+    <section className="py-24 px-4 bg-gray-50 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
         <div className="text-center mb-16">
@@ -48,23 +43,23 @@ const Faculty: React.FC = () => {
           <div className="mt-4 w-24 h-1.5 bg-primary mx-auto rounded-full" />
         </div>
 
-        {/* LOADING STATE */}
+        {/* LOADING */}
         {isLoading && (
           <p className="text-center text-gray-500">Loading teachers...</p>
         )}
 
-        {/* ERROR STATE */}
+        {/* ERROR */}
         {error && (
           <p className="text-center text-red-500">Failed to load teachers</p>
         )}
 
-        {/* SWIPER */}
+        {/* SLIDER */}
         {!isLoading && !error && (
           <Swiper
             modules={[Autoplay, Pagination, Navigation]}
             spaceBetween={25}
             slidesPerView={1}
-            autoplay={{ delay: 3000, disableOnInteraction: false }}
+            autoplay={{ delay: 3000 }}
             pagination={{ clickable: true }}
             breakpoints={{
               640: { slidesPerView: 2 },
@@ -78,12 +73,12 @@ const Faculty: React.FC = () => {
                 <motion.div
                   layoutId={`card-${teacher._id}`}
                   onClick={() => setSelectedTeacher(teacher)}
-                  className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl cursor-pointer border border-gray-100 p-6 flex flex-col items-center text-center transition-all duration-300 group h-full mb-10"
+                  className="bg-white rounded-3xl p-6 text-center cursor-pointer shadow hover:shadow-xl transition"
                 >
                   {/* IMAGE */}
                   <motion.div
                     layoutId={`img-${teacher._id}`}
-                    className="relative w-24 h-24 rounded-2xl overflow-hidden mb-5 ring-4 ring-gray-50 group-hover:ring-primary/10 transition-all shadow-md"
+                    className="relative w-24 h-24 mx-auto rounded-2xl overflow-hidden mb-5"
                   >
                     <Image
                       src={teacher.images || "/default.png"}
@@ -96,22 +91,15 @@ const Faculty: React.FC = () => {
                   {/* NAME */}
                   <motion.h3
                     layoutId={`name-${teacher._id}`}
-                    className="font-bold text-gray-900 text-base leading-tight h-10 flex items-center"
+                    className="font-bold text-gray-900"
                   >
                     {teacher.firstName} {teacher.lastName}
                   </motion.h3>
 
                   {/* DESIGNATION */}
-                  <p className="text-[10px] text-primary font-bold uppercase mt-2 tracking-widest bg-primary/5 px-3 py-1 rounded-full">
+                  <p className="text-xs text-primary font-semibold mt-2">
                     {teacher.designation || "Teacher"}
                   </p>
-
-                  {/* INFO */}
-                  <div className="mt-5 pt-4 border-t border-gray-50 w-full">
-                    <p className="text-xs font-semibold text-gray-400">
-                      {teacher.department || "N/A"}
-                    </p>
-                  </div>
                 </motion.div>
               </SwiperSlide>
             ))}
@@ -122,7 +110,14 @@ const Faculty: React.FC = () => {
         <AnimatePresence>
           {selectedTeacher && (
             <TeacherLightBox
-              selectedTeacher={selectedTeacher}
+              selectedTeacher={{
+                name: `${selectedTeacher.firstName} ${selectedTeacher.lastName}`,
+                image: selectedTeacher.images || "/default.png",
+                description:
+                  selectedTeacher.designation ||
+                  "Experienced professional teacher",
+                socials: selectedTeacher.socials || [],
+              }}
               close={() => setSelectedTeacher(null)}
             />
           )}
