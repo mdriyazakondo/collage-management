@@ -17,6 +17,9 @@ const eslintConfig = defineConfig([
     rules: {
       "@typescript-eslint/no-explicit-any": "error",
     },
+    rules: {
+      "@typescript-eslint/no-explicit-any": "error",
+    },
   },
 ]);
 

@@ -22,10 +22,11 @@ import { useCreateBlogMutation } from "@/redux/service/blog/blogApi";
 import { uploadToCloudinary } from "@/utils/upload";
 
 export interface TBlog {
-  author: string;
+  author?: string;
   title: string;
   description: string;
   blog_type: string;
+  image?: string[];
 }
 
 const BlogForm = () => {
