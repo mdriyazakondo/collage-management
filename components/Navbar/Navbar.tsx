@@ -15,11 +15,11 @@ const Navbar = () => {
   const pathname = usePathname();
 
   const navLinks = [
-    { name: "Dashboard", href: "/dashboard" },
-    { name: "Academics", href: "/academics" },
-    { name: "Admissions", href: "/admissions" },
-    { name: "Alumni", href: "/alumni" },
+    { name: "Home", href: "/" },
+    { name: "Events", href: "/event" },
+    { name: "Blog", href: "/blog" },
     { name: "Library", href: "/library" },
+    { name: "Dashboard", href: "/dashboard" },
   ];
 
   return (

@@ -209,7 +209,7 @@ const Page = () => {
               <span className="text-sm text-slate-400">Page {page}</span>
               <button
                 onClick={() => setPage((prev) => prev + 1)}
-                disabled={users.length < 2}
+                disabled={users.length < limit}
                 className={`p-2 text-slate-600 hover:text-white hover:bg-slate-700 rounded-lg transition-all disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent ${users.length < 1 ? "cursor-not-allowed" : ""}`}
               >
                 <ChevronRight size={16} />

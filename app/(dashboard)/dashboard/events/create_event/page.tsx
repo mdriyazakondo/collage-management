@@ -26,6 +26,7 @@ import { TEventFormValues } from "@/types/event";
 const EventForm = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [show, setShow] = useState(false);
 
   const [createEvent, { isLoading: isCreating }] = useCreateEventMutation();
 
@@ -57,6 +58,7 @@ const EventForm = () => {
     setValue("image", undefined);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
+
 
   const onSubmit: SubmitHandler<TEventFormValues> = async (data) => {
     try {
@@ -145,8 +147,8 @@ const EventForm = () => {
                   className="hidden"
                   {...register("image")}
                   onChange={(e) => {
-                    register("image").onChange(e); 
-                    handleImageChange(e); 
+                    register("image").onChange(e);
+                    handleImageChange(e);
                   }}
                   ref={(e) => {
                     register("image").ref(e);

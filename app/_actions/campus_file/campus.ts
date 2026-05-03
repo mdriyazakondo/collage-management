@@ -1,15 +1,13 @@
 "use server";
 
-export async function getAllUsers({
+export async function getAllCampus({
   search,
-  role,
-  isActive,
+  sort,
   page = "1",
-  limit = "10",
+  limit = "6",
 }: {
   search?: string;
-  role?: string;
-  isActive?: string;
+  sort?: string;
   page?: string;
   limit?: string;
 } = {}) {
@@ -17,24 +15,25 @@ export async function getAllUsers({
     const params = new URLSearchParams();
 
     if (search) params.append("search", search);
-    if (role) params.append("role", role);
-    if (isActive) params.append("isActive", isActive);
+    if (sort) params.append("sort", sort);
     params.append("page", page);
     params.append("limit", limit);
 
     const response = await fetch(
-      `http://localhost:8080/api/v1/user/all_user?${params.toString()}`,
+      `http://localhost:8080/api/v1/campus?${params.toString()}`,
       {
         cache: "no-store",
       },
     );
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      throw new Error("Failed to fetch campus files");
+    }
 
     const result = await response.json();
-    return result.data;
+    return result;
   } catch (error) {
-    console.error("Error fetching users:", error);
-    return null;
+    console.error("❌ Error fetching campus files:", error);
+    return { data: [] };
   }
 }

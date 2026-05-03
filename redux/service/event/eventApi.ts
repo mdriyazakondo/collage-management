@@ -22,6 +22,13 @@ export const eventApi = createApi({
       }),
       providesTags: ["events"],
     }),
+    getEventById: builder.query<TApiResponse<TEvents>, string>({
+      query: (id) => ({
+        url: `events/${id}`,
+        method: "GET",
+      }),
+      providesTags: ["events"],
+    }),
     createEvent: builder.mutation<TApiResponse<TEvents>, TEvents>({
       query: (data) => ({
         url: "events",
@@ -30,7 +37,33 @@ export const eventApi = createApi({
       }),
       invalidatesTags: ["events"],
     }),
+
+    deleteEvent: builder.mutation<TApiResponse<null>, string>({
+      query: (id) => ({
+        url: `events/${id}`,
+
+        method: "DELETE",
+      }),
+      invalidatesTags: ["events"],
+    }),
+    updateEvent: builder.mutation<
+      TApiResponse<TEvents>,
+      { data: TEvents; id: string }
+    >({
+      query: ({ data, id }) => ({
+        url: `events/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["events"],
+    }),
   }),
 });
 
-export const { useGetAllEventsQuery, useCreateEventMutation } = eventApi;
+export const {
+  useGetAllEventsQuery,
+  useCreateEventMutation,
+  useGetEventByIdQuery,
+  useDeleteEventMutation,
+  useUpdateEventMutation,
+} = eventApi;
